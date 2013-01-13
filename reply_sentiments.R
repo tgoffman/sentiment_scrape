@@ -41,7 +41,9 @@ while (!dbHasCompleted(resultSet)) {
     cleaned = gsub("[ \t]{2,}", "", cleaned)
     cleaned = gsub("^\\s+|\\s+$", "", cleaned)
 
-    withPunctuation <- cleaned # Save punctuation to split on sentences within `classify_polarity`
+    cleaned = gsub("(?!\\.)[[:punct:]]", "", cleaned, perl=TRUE) # clean punctuation except periods
+
+    withPeriods <- cleaned # Save punctuation to split on sentences within `classify_polarity`
 
     # Safe to clean after XML parse
                                         # remove punctuation
@@ -54,7 +56,7 @@ while (!dbHasCompleted(resultSet)) {
     cleaned = gsub("[ \t]{2,}", "", cleaned)
     cleaned = gsub("^\\s+|\\s+$", "", cleaned)
 
-    value = classify_polarity(text, withPunctuation, algorithm="bayes")
+    value = classify_polarity(text, withPeriods, algorithm="bayes")
 
     topSentences <- value[[5]]
 
