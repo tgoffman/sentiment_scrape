@@ -32,7 +32,7 @@ while (!dbHasCompleted(resultSet)) {
     cleaned = gsub("\x92ve", "", text) # Remove invalid utf-8 character
 
     # Pull Text only from XML
-    doc.html <- xmlParse(c("<p>",cleaned,"</p>"),asText=TRUE)
+    doc.html <- htmlParse(c("<p>",cleaned,"</p>"),asText=TRUE)
     root <- xmlRoot(doc.html)
     removeNodes(xmlElementsByTagName(root, "br")) # Remove BR tags
     cleaned = getChildrenStrings(root) # Take only text from XML tree
