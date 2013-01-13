@@ -3,7 +3,7 @@ library('RMySQL')
 library(XML)
 
 con <- dbConnect(MySQL(), user= "root", dbname ="sentiment")
-resultSet <- dbSendQuery(con, "select id, formatted_content from replies where company_id=24 limit 500") 
+resultSet <- dbSendQuery(con, "select id, formatted_content from replies where company_id=24")
 
 # Build a SQL value statement for topic sentiment row eg: ... VALUES (Col1Val, Col2Val, Col3Val)
 buildSentimentRowValue <- function(reply_id, positive, negative) {
@@ -19,7 +19,7 @@ while (!dbHasCompleted(resultSet)) {
     break
   }
 
-  values <- ""
+  sentimentRows <- c()
   sentenceRows <- c()
 
   for(i in 1:length(batch[,2])) {
@@ -58,6 +58,12 @@ while (!dbHasCompleted(resultSet)) {
 
     value = classify_polarity(text, withPeriods, algorithm="bayes")
 
+    negative <- value[[1]]
+    positive <- value[[2]]
+    sentiment <- value[[4]]
+
+    sentimentRows <- rbind(sentimentRows, paste(replyId, negative, positive, sentiment, sep="\t"))
+
     topSentences <- value[[5]]
 
     if (length(topSentences) > 1) {
@@ -68,12 +74,9 @@ while (!dbHasCompleted(resultSet)) {
       sentenceRows <- rbind(sentenceRows, paste(replyId, paste("\"", topSentences[1,3] , "\"", sep=""), topSentences[1,4], sep="\t"))
     }    
 
-    #values <- paste(values, buildSentimentRowValue(batch[i,1], value[1], value[2]), ",", sep = "")
   }
+  write(paste(sentimentRows, collapse="\n"), file="~/workspace/sentiment/reply_sentiments.txt", sep="\n", append=TRUE)
   write(paste(sentenceRows, collapse="\n"), file="~/workspace/sentiment/reply_sentiment_sentences.txt", sep="\n", append=TRUE)
-
-  # values <- substr(values, 1, nchar(values)-1) # Remove last ','
-
 }
 
 # Cleanup connections
