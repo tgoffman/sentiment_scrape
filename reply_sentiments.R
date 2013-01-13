@@ -3,7 +3,7 @@ library('RMySQL')
 library(XML)
 
 con <- dbConnect(MySQL(), user= "root", dbname ="sentiment")
-resultSet <- dbSendQuery(con, "select id, formatted_content from replies limit 10")
+resultSet <- dbSendQuery(con, "select id, formatted_content from replies where company_id=24 limit 100")
 
 # Build a SQL value statement for topic sentiment row eg: ... VALUES (Col1Val, Col2Val, Col3Val)
 buildSentimentRowValue <- function(reply_id, positive, negative) {
@@ -24,10 +24,12 @@ while (!dbHasCompleted(resultSet)) {
 
   for(i in 1:length(batch[,2])) {
     text <- batch[i,2]
+
     replyId <- batch[i,1]
 
     # Scrub text of unwanted characters setting up for XML clean
     cleaned = gsub("&", "", text) # Remove ampersands
+    cleaned = gsub("\x92ve", "", text) # Remove invalid utf-8 character
 
     # Pull Text only from XML
     doc.html <- xmlParse(c("<p>",cleaned,"</p>"),asText=TRUE)
